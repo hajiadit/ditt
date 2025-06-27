@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ucapan Ulang Tahun</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.10.2/dist/full.css" rel="stylesheet" type="text/css" />
+    <style>
+      .particle {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        opacity: 0.8;
+        animation: float 5s infinite ease-in-out;
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(0) scale(1);
+          opacity: 0.9;
+        }
+        50% {
+          transform: translateY(-100px) scale(1.3);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(0) scale(1);
+          opacity: 0.8;
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .fade-in {
+        animation: fadeIn 1s ease-out forwards;
+      }
+
+      body {
+        font-family: "Comic Sans MS", cursive, sans-serif;
+        overflow-x: hidden;
+      }
+
+      .typing-text {
+        border-right: 2px solid white;
+        overflow: hidden;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+      }
+
+      .star {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        animation: twinkle 2s infinite ease-in-out;
+      }
+
+      @keyframes twinkle {
+        0% {
+          opacity: 0;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.5);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes fadeInScale {
+        from {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .fade-in-scale {
+        animation: fadeInScale 1.5s ease-out forwards;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gradient-to-br from-purple-800 to-pink-600 min-h-screen flex items-center justify-center relative">
+    <button id="toggleMusic" class="fixed top-4 right-4 bg-white/70 hover:bg-white text-black font-bold py-1 px-3 rounded-full z-50 shadow">🔊</button>
+
+    <!-- Stars -->
+    <div id="stars" class="absolute inset-0 -z-10"></div>
+
+    <!-- Splash Screen -->
+    <div id="splash" class="fixed inset-0 bg-black flex flex-col items-center justify-center text-white z-50">
+      <span class="loading loading-ring loading-lg"></span>
+      <h1 class="mt-4 text-xl font-bold animate-pulse">Hi Apa Kabar?</h1>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="hidden p-6 max-w-xl mx-auto text-center text-white">
+      <button id="startBtn" class="btn btn-accent text-lg animate-bounce">Click Me</button>
+
+      <!-- Greeting Text -->
+      <div id="greetings" class="mt-8 space-y-4 hidden">
+        <p id="line1" class="text-3xl font-bold opacity-0">Selamat Ulang Tahun 🎂</p>
+        <p id="line2" class="text-4xl font-bold opacity-0">Mailani Ulfah</p>
+        <p id="line3" class="text-xl opacity-0">Semoga panjang umur, sehat selalu, dan penuh keberkahan 🤲</p>
+      </div>
+
+      <!-- Doa Form -->
+      <div id="wishForm" class="mt-8 hidden">
+        <textarea id="wishInput" class="textarea textarea-bordered w-full text-black" rows="3" placeholder="Tulis do'a dan harapan di sini..."></textarea>
+        <button id="submitBtn" class="btn btn-success mt-4">Kirim Harapan ✨</button>
+      </div>
+
+      <!-- Final Typing Animation -->
+      <div id="finalScene" class="mt-10 hidden">
+        <p id="finalLine" class="text-2xl font-bold typing-text mb-4"></p>
+        <p id="finalWish" class="text-xl typing-text"></p>
+      </div>
+
+      <!-- Tambahkan ini di dalam <body>, tepat setelah #finalScene -->
+      <div id="closingScene" class="hidden fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center text-white text-xl font-semibold z-40">
+        <div class="fade-in-scale text-center">
+          <p class="text-lg">~ 🎉🎉🎉🎉 Ucapan Sederhana ✨✨✨~</p>
+          <p class="mt-2 text-md opacity-80">Dari: Aditya Aulia Rahman 🧑‍🎓</p>
+        </div>
+      </div>
+    </div>
+
+    <audio id="bgMusic" loop>
+      <source src="src/bg-sound.mp3" type="audio/mpeg" />
+      Your browser does not support the audio element.
+    </audio>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const splash = document.getElementById("splash");
+        const app = document.getElementById("app");
+        const startBtn = document.getElementById("startBtn");
+        const greetings = document.getElementById("greetings");
+        const lines = [document.getElementById("line1"), document.getElementById("line2"), document.getElementById("line3")];
+        const wishForm = document.getElementById("wishForm");
+        const submitBtn = document.getElementById("submitBtn");
+        const wishInput = document.getElementById("wishInput");
+        const finalScene = document.getElementById("finalScene");
+        const finalLine = document.getElementById("finalLine");
+        const finalWish = document.getElementById("finalWish");
+        const bgMusic = document.getElementById("bgMusic");
+        const toggleMusic = document.getElementById("toggleMusic");
+
+        // Splash Screen Timeout
+        setTimeout(() => {
+          splash.style.display = "none";
+          app.classList.remove("hidden");
+        }, 5000);
+
+        // Event Start Button
+        startBtn.addEventListener("click", () => {
+          startBtn.style.display = "none";
+          greetings.classList.remove("hidden");
+
+          // Play music saat user klik tombol
+          bgMusic.volume = 0.3;
+          bgMusic
+            .play()
+            .then(() => {
+              toggleMusic.textContent = "🔊";
+            })
+            .catch(() => {
+              toggleMusic.textContent = "🔇";
+            });
+
+          lines.forEach((line, i) => {
+            setTimeout(() => {
+              line.classList.remove("opacity-0");
+              line.classList.add("fade-in");
+
+              if (i === lines.length - 1) {
+                setTimeout(() => {
+                  greetings.classList.add("hidden");
+                  wishForm.classList.remove("hidden");
+                }, 4000);
+              }
+            }, i * 2000);
+          });
+        });
+
+        // Submit Wish
+        submitBtn.addEventListener("click", () => {
+          const wish = wishInput.value.trim();
+          if (wish === "") {
+            alert("Tolong tulis do'a atau harapan terlebih dahulu 😊");
+            return;
+          }
+
+          wishForm.classList.add("hidden");
+          finalScene.classList.remove("hidden");
+
+          typeText(finalLine, "Sekali lagi, Selamat Ulang Tahun Ulfah, Barakallah fi Umrik 🎉", 50, () => {
+            setTimeout(() => {
+              const extra = "\n\nAamiin Ya Rabbal ‘Alamiin 🤲\nSemoga semua harapanmu terkabul, dan ini juga do’a dariku:\nSemoga kamu selalu dikelilingi orang baik, makin bijaksana, dan bahagia dunia akhirat 🫶";
+              const combinedWish = `${wish}${extra}`;
+              typeText(finalWish, combinedWish, 40);
+            }, 1000);
+          });
+        });
+
+        // Typing animation
+        function typeText(element, text, speed, callback) {
+          element.textContent = "";
+          let i = 0;
+          const interval = setInterval(() => {
+            element.textContent += text[i];
+            i++;
+            if (i === text.length) {
+              clearInterval(interval);
+              if (callback) callback();
+
+              // Tampilkan closing scene 4 detik setelah typing selesai
+              if (element.id === "finalWish") {
+                setTimeout(() => {
+                  document.getElementById("closingScene").classList.remove("hidden");
+                }, 4000);
+              }
+            }
+          }, speed);
+        }
+
+        // Stars
+        function createStars() {
+          const container = document.getElementById("stars");
+          for (let i = 0; i < 100; i++) {
+            const star = document.createElement("div");
+            star.classList.add("star");
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.animationDelay = `${Math.random() * 2}s`;
+            container.appendChild(star);
+          }
+        }
+        createStars();
+
+        // Partikel
+        function createParticles() {
+          const colors = ["#fcd34d", "#f87171", "#60a5fa", "#34d399", "#a78bfa"];
+          for (let i = 0; i < 50; i++) {
+            const p = document.createElement("div");
+            p.classList.add("particle");
+            p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            p.style.left = `${Math.random() * 100}%`;
+            p.style.top = `${Math.random() * 100}%`;
+            p.style.animationDuration = `${3 + Math.random() * 2}s`;
+            p.style.animationDelay = `${Math.random() * 5}s`;
+            document.body.appendChild(p);
+          }
+        }
+        createParticles();
+
+        // Toggle Music
+        toggleMusic.addEventListener("click", () => {
+          if (bgMusic.paused) {
+            bgMusic.play();
+            toggleMusic.textContent = "🔊";
+          } else {
+            bgMusic.pause();
+            toggleMusic.textContent = "🔇";
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
